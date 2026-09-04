@@ -24,7 +24,7 @@ const connect = [
 ];
 
 const socials = [
-  { href: "#", label: "Facebook", icon: Facebook },
+  { href: "https://facebook.com/CLANetwork", label: "Facebook", icon: Facebook },
   { href: "#", label: "Twitter", icon: Twitter },
   { href: "#", label: "Instagram", icon: Instagram },
   { href: "#", label: "YouTube", icon: Youtube },
