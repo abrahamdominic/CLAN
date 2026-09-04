@@ -15,7 +15,7 @@ export const SITE_DESCRIPTION =
 
 export const CONTACT = {
   email: "hello@clanministry.org",
-  phone: "+234 811 926 4733",
+  phone: "(+234) 811 926 4733",
   location: "Otukpo Benue State, Nigeria",
 };
 

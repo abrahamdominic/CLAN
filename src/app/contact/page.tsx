@@ -6,7 +6,7 @@ import { CONTACT } from "@/lib/content";
 import { ContactForm } from "@/components/contact/contact-form";
 
 const socials = [
-  { label: "Facebook", handle: "@clanministry" },
+  { label: "Facebook", handle: "@CLANetwork" },
   { label: "Instagram", handle: "@clanministry" },
   { label: "Twitter", handle: "@clanministry" },
   { label: "YouTube", handle: "CLAN Ministry" },
