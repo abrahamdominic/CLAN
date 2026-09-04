@@ -66,7 +66,7 @@ export default function PurposePage() {
               title="Understanding Your Purpose"
               description="For we are God's handiwork, created in Christ Jesus to do good works, which God prepared in advance for us to do."
             />
-            <p className="mt-4 text-sm font-semibold text-gold-600">— Ephesians 2:10</p>
+            <p className="mt-4 text-sm font-semibold text-gold-600">Ephesians 2:10</p>
           </Reveal>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

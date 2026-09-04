@@ -56,7 +56,7 @@ export default function AdminContactsPage() {
         columns={[
           { key: "name", label: "From", render: (m) => <span className="font-medium text-navy-900">{m.name}</span> },
           { key: "email", label: "Email" },
-          { key: "subject", label: "Subject", render: (m) => m.subject || "—" },
+          { key: "subject", label: "Subject", render: (m) => m.subject || "-" },
           { key: "message", label: "Message", render: (m) => <span className="line-clamp-2 max-w-sm">{m.message}</span> },
           { key: "read", label: "Status", render: (m) => <Badge variant={m.read ? "default" : "info"}>{m.read ? "Read" : "New"}</Badge> },
           { key: "created_at", label: "Date", render: (m) => formatDate(m.created_at) },

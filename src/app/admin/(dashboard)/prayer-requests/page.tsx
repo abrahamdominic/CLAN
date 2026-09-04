@@ -53,7 +53,7 @@ export default function AdminPrayerRequestsPage() {
       <AdminTable
         columns={[
           { key: "name", label: "Name", render: (r) => r.visibility === "anonymous" ? <em className="text-navy-400">Anonymous</em> : <span className="font-medium text-navy-900">{r.name}</span> },
-          { key: "category", label: "Category", render: (r) => r.category ? <Badge>{r.category}</Badge> : "—" },
+          { key: "category", label: "Category", render: (r) => r.category ? <Badge>{r.category}</Badge> : "-" },
           { key: "request", label: "Request", render: (r) => <span className="line-clamp-2 max-w-xs">{r.request}</span> },
           { key: "visibility", label: "Visibility", render: (r) => <Badge variant={r.visibility === "public" ? "success" : r.visibility === "anonymous" ? "info" : "default"}>{r.visibility}</Badge> },
           { key: "prayed_for", label: "Prayed For", render: (r) => <Badge variant={r.prayed_for ? "success" : "default"}>{r.prayed_for ? "Yes" : "No"}</Badge> },

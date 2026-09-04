@@ -19,7 +19,7 @@ const areas = [
     icon: Heart,
     title: "Prayer",
     description:
-      "Building a culture of consistent, intentional and faith-filled prayer — personal, intercessory and corporate.",
+      "Building a culture of consistent, intentional and faith-filled prayer: personal, intercessory and corporate.",
     cta: "Submit a Prayer Request",
     href: "/prayer",
   },
@@ -51,7 +51,7 @@ const areas = [
     icon: Compass,
     title: "Purpose",
     description:
-      "Helping people discover their God-given gifts, calling and purpose — and providing resources to help them walk in it.",
+      "Helping people discover their God-given gifts, calling and purpose, and providing resources to help them walk in it.",
     cta: "Discover Your Purpose",
     href: "/purpose",
   },

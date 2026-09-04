@@ -181,7 +181,7 @@ export async function createDonationIntent(formData: FormData) {
 
   if (!amount || amount <= 0) return { error: "A valid donation amount is required." };
 
-  // No payment provider configured — record the intent directly (dev/test mode)
+  // No payment provider configured, record the intent directly (dev/test mode)
   if (!PAYMENT_PROVIDER || PAYMENT_PROVIDER === "test") {
     if (isSupabaseConfigured) {
       const { error } = await getServerClient().from("donations").insert({

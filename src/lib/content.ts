@@ -166,7 +166,7 @@ export const SAMPLE_PROGRAMS: DiscipleshipProgram[] = [
     title: "School of Prayer",
     slug: "school-of-prayer",
     description:
-      "Training in the discipline of prayer — personal, intercessory and corporate.",
+      "Training in the discipline of prayer: personal, intercessory and corporate.",
     duration: "6 Weeks",
     schedule: "Tuesdays, 6:00 PM",
     image_url: null,

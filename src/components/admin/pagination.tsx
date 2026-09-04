@@ -17,7 +17,7 @@ export function Pagination({ page, total, perPage, onPageChange }: PaginationPro
   return (
     <div className="flex items-center justify-between pt-4">
       <p className="text-sm text-navy-500">
-        Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} of {total}
+        Showing {(page - 1) * perPage + 1} to {Math.min(page * perPage, total)} of {total}
       </p>
       <div className="flex items-center gap-1">
         <button

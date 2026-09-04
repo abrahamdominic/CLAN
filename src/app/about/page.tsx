@@ -18,7 +18,7 @@ const values = [
 ];
 
 const beliefs = [
-  "We believe in the one true God — Father, Son and Holy Spirit.",
+  "We believe in the one true God: Father, Son and Holy Spirit.",
   "We believe Jesus Christ is the Son of God, our Lord and Savior.",
   "We believe in the authority and truth of the Holy Scriptures.",
   "We believe in salvation by grace through faith in Jesus Christ.",
@@ -33,7 +33,7 @@ const fallbackFaqs: Faq[] = [
   {
     id: "faq1",
     question: "Who is CLAN for?",
-    answer: "CLAN is for anyone seeking to know Christ, grow in Christ, and discover their purpose in Him — whether new to the faith or walking for years.",
+    answer: "CLAN is for anyone seeking to know Christ, grow in Christ, and discover their purpose in Him, whether new to the faith or walking for years.",
     category: "General",
     sort_order: 1,
     published: true,
@@ -73,7 +73,7 @@ export default async function AboutPage() {
       <PageHeader
         eyebrow="About CLAN"
         title="Who We Are"
-        description="Christian Life Altar Network is a non-denominational Christian organization dedicated to the rebirth of true Christianity — discipleship, prayer, the Word, evangelism, fellowship and purpose."
+        description="Christian Life Altar Network is a non-denominational Christian organization dedicated to the rebirth of true Christianity: discipleship, prayer, the Word, evangelism, fellowship and purpose."
       />
 
       {/* Who We Are / Our Story */}
@@ -131,7 +131,7 @@ export default async function AboutPage() {
             <SectionHeading
               eyebrow="Our Mandate"
               title="The Rebirth of True Christianity"
-              description="We are called to help people know Christ, grow in Christ, live like Christ, serve Christ, and fulfill their purpose in Christ Jesus — the heartbeat of everything CLAN does."
+              description="We are called to help people know Christ, grow in Christ, live like Christ, serve Christ, and fulfill their purpose in Christ Jesus. This is the heartbeat of everything CLAN does."
             />
           </Reveal>
         </Container>

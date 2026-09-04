@@ -13,7 +13,7 @@ export function Logo({ className, textClassName, showText = true }: LogoProps) {
     <Link
       href="/"
       className={cn("flex items-center gap-2.5", className)}
-      aria-label="CLAN — Christian Life Altar Network"
+      aria-label="CLAN, Christian Life Altar Network"
     >
       <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-navy-800">
         <LogoImage />

@@ -53,7 +53,7 @@ export default function JoinPage() {
                 &ldquo;They devoted themselves to the apostles&apos; teaching and to fellowship, to
                 the breaking of bread and to prayer.&rdquo;
               </p>
-              <p className="mt-2 text-sm font-semibold text-gold-400">— Acts 2:42</p>
+              <p className="mt-2 text-sm font-semibold text-gold-400">Acts 2:42</p>
             </div>
           </Reveal>
           <Reveal delay={100} className="lg:col-span-3">

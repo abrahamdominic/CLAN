@@ -93,10 +93,10 @@ export default function AdminBlogPage() {
       <AdminTable
         columns={[
           { key: "title", label: "Title", render: (p) => <span className="font-medium text-navy-900">{p.title}</span> },
-          { key: "category", label: "Category", render: (p) => p.category ? <Badge>{p.category}</Badge> : "—" },
-          { key: "author", label: "Author", render: (p) => p.author || "—" },
+          { key: "category", label: "Category", render: (p) => p.category ? <Badge>{p.category}</Badge> : "-" },
+          { key: "author", label: "Author", render: (p) => p.author || "-" },
           { key: "published_date", label: "Date", render: (p) => formatDate(p.published_date) },
-          { key: "featured", label: "Featured", render: (p) => p.featured ? <Badge variant="warning">Featured</Badge> : "—" },
+          { key: "featured", label: "Featured", render: (p) => p.featured ? <Badge variant="warning">Featured</Badge> : "-" },
           { key: "published", label: "Status", render: (p) => <Badge variant={p.published ? "success" : "default"}>{p.published ? "Published" : "Draft"}</Badge> },
           {
             key: "actions", label: "", className: "w-32",

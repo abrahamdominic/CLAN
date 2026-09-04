@@ -64,7 +64,7 @@ export default function AdminMembersPage() {
           { key: "full_name", label: "Name", render: (m) => <span className="font-medium text-navy-900">{m.full_name}</span> },
           { key: "email", label: "Email" },
           { key: "location", label: "Location" },
-          { key: "areas_of_interest", label: "Interests", render: (m) => (m.areas_of_interest as string[])?.slice(0, 3).map((a: string) => <Badge key={a}>{a}</Badge>) || "—" },
+          { key: "areas_of_interest", label: "Interests", render: (m) => (m.areas_of_interest as string[])?.slice(0, 3).map((a: string) => <Badge key={a}>{a}</Badge>) || "-" },
           { key: "status", label: "Status", render: (m) => <Badge variant={statusVariant(m.status)}>{m.status}</Badge> },
           { key: "created_at", label: "Applied", render: (m) => formatDate(m.created_at) },
           {

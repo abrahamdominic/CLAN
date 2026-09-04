@@ -46,7 +46,7 @@ export default async function DiscipleshipPage() {
                 <Timer className="h-12 w-12 text-gold-400" />
                 <h3 className="mt-4 font-display text-2xl font-bold">A Journey of Transformation</h3>
                 <p className="mt-3 text-navy-100">
-                  Discipleship is not a one-time event — it is a journey of becoming more like
+                  Discipleship is not a one-time event; it is a journey of becoming more like
                   Christ each day. Our programs are designed to meet you where you are and help
                   you take the next step.
                 </p>
@@ -105,7 +105,7 @@ export default async function DiscipleshipPage() {
                 &ldquo;Going through discipleship at CLAN transformed how I read the Bible,
                 pray and relate to other believers. I finally understood my purpose in Christ.&rdquo;
               </p>
-              <footer className="mt-4 font-semibold text-navy-900">— A Discipleship Graduate</footer>
+              <footer className="mt-4 font-semibold text-navy-900">A Discipleship Graduate</footer>
             </blockquote>
           </Reveal>
         </Container>

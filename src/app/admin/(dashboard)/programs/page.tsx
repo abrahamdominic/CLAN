@@ -79,7 +79,7 @@ export default function AdminProgramsPage() {
           { key: "title", label: "Title", render: (p) => <span className="font-medium text-navy-900">{p.title}</span> },
           { key: "duration", label: "Duration" },
           { key: "schedule", label: "Schedule" },
-          { key: "featured", label: "Featured", render: (p) => p.featured ? <Badge variant="warning">Featured</Badge> : "—" },
+          { key: "featured", label: "Featured", render: (p) => p.featured ? <Badge variant="warning">Featured</Badge> : "-" },
           { key: "published", label: "Status", render: (p) => <Badge variant={p.published ? "success" : "default"}>{p.published ? "Published" : "Draft"}</Badge> },
           {
             key: "actions", label: "", className: "w-32",

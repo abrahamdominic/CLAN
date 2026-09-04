@@ -58,7 +58,7 @@ export function PrayerRequestForm() {
         <h3 className="font-display text-2xl font-bold text-navy-900">We&apos;re Praying With You</h3>
         <p className="mx-auto mt-3 max-w-md text-navy-600">
           Thank you for trusting us with your request. Our team will lift it up in prayer.
-          &quot;The prayer of a righteous person is powerful and effective.&quot; — James 5:16
+          &quot;The prayer of a righteous person is powerful and effective.&quot; James 5:16
         </p>
         <button
           onClick={() => setDone(false)}

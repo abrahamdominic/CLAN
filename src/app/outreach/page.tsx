@@ -35,7 +35,7 @@ export default async function OutreachPage() {
               />
               <p className="mt-5 text-lg leading-relaxed text-navy-700">
                 Outreach is the outworking of our faith. We believe the message of Christ is
-                meant to be shared — through words of truth, works of compassion, and a genuine
+                meant to be shared through words of truth, works of compassion, and a genuine
                 love for people. Whether feeding the hungry, supporting the needy or sharing the
                 gospel, we meet people where they are.
               </p>
@@ -60,7 +60,7 @@ export default async function OutreachPage() {
                 </p>
                 <p className="mt-6 border-t border-navy-700 pt-6 italic text-navy-200">
                   &ldquo;Truly I tell you, whatever you did for one of the least of these brothers
-                  and sisters of mine, you did for me.&rdquo; — Matthew 25:40
+                  and sisters of mine, you did for me.&rdquo; Matthew 25:40
                 </p>
               </div>
             </Reveal>

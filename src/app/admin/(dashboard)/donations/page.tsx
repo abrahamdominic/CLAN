@@ -45,7 +45,7 @@ export default function AdminDonationsPage() {
           { key: "donor_name", label: "Donor", render: (d) => <span className="font-medium text-navy-900">{d.donor_name || "Anonymous"}</span> },
           { key: "donor_email", label: "Email" },
           { key: "amount", label: "Amount", render: (d) => <span className="font-semibold text-navy-900">${Number(d.amount).toLocaleString()}</span> },
-          { key: "category", label: "Category", render: (d) => d.category ? <Badge>{d.category}</Badge> : "—" },
+          { key: "category", label: "Category", render: (d) => d.category ? <Badge>{d.category}</Badge> : "-" },
           { key: "status", label: "Status", render: (d) => <Badge variant={d.status === "completed" ? "success" : "default"}>{d.status || "recorded"}</Badge> },
           { key: "created_at", label: "Date", render: (d) => formatDate(d.created_at) },
         ]}

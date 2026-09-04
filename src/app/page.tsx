@@ -115,7 +115,7 @@ export default async function HomePage() {
             <SectionHeading
               eyebrow="Welcome to CLAN"
               title="Rebirth. Discipleship. Purpose."
-              description="Christian Life Altar Network is a non-denominational Christian organization focused on the rebirth of true Christianity — helping people know Christ, grow in Christ, live like Christ, serve Christ, and fulfill their purpose in Christ Jesus."
+              description="Christian Life Altar Network is a non-denominational Christian organization focused on the rebirth of true Christianity, helping people know Christ, grow in Christ, live like Christ, serve Christ, and fulfill their purpose in Christ Jesus."
             />
           </Reveal>
         </Container>
@@ -279,7 +279,7 @@ export default async function HomePage() {
               align="left"
               eyebrow="Outreach"
               title="Taking Christ Beyond Our Walls"
-              description="We serve our communities through practical acts of love, evangelism and missions — reaching people with the life-changing message of Jesus."
+              description="We serve our communities through practical acts of love, evangelism and missions, reaching people with the life-changing message of Jesus."
             />
             <div className="mt-8">
               <Button href="/outreach" variant="primary">Discover Our Outreach</Button>

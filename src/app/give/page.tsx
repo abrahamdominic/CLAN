@@ -98,7 +98,7 @@ export default async function GivePage({
                 &ldquo;Each of you should give what you have decided in your heart to give, not
                 reluctantly or under compulsion, for God loves a cheerful giver.&rdquo;
               </p>
-              <p className="mt-2 text-sm font-semibold text-gold-400">— 2 Corinthians 9:7</p>
+              <p className="mt-2 text-sm font-semibold text-gold-400">2 Corinthians 9:7</p>
             </div>
           </Reveal>
           <Reveal delay={100}>

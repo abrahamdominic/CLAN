@@ -38,7 +38,7 @@ export function DonationForm() {
       window.location.href = res.authorizationUrl;
       return;
     }
-    // test mode — success recorded
+    // test mode, success recorded
     setDone(true);
     formRef.current?.reset();
     toast.success("Thank you for your generous gift!");
@@ -50,7 +50,7 @@ export function DonationForm() {
         <h3 className="font-display text-2xl font-bold text-navy-900">Thank You for Giving!</h3>
         <p className="mx-auto mt-3 max-w-md text-navy-600">
           Your gift supports outreach, discipleship, missions and the work of the Kingdom through
-          CLAN. &quot;God loves a cheerful giver.&quot; — 2 Corinthians 9:7
+          CLAN. &quot;God loves a cheerful giver.&quot; 2 Corinthians 9:7
         </p>
       </div>
     );

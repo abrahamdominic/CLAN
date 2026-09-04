@@ -96,7 +96,7 @@ export default function AdminEventsPage() {
         columns={[
           { key: "title", label: "Title", render: (e) => <span className="font-medium text-navy-900">{e.title}</span> },
           { key: "date", label: "Date", render: (e) => formatDate(e.date) },
-          { key: "category", label: "Category", render: (e) => e.category ? <Badge>{e.category}</Badge> : "—" },
+          { key: "category", label: "Category", render: (e) => e.category ? <Badge>{e.category}</Badge> : "-" },
           { key: "is_online", label: "Type", render: (e) => <Badge variant={e.is_online ? "info" : "default"}>{e.is_online ? "Online" : "In-Person"}</Badge> },
           { key: "published", label: "Status", render: (e) => <Badge variant={e.published ? "success" : "default"}>{e.published ? "Published" : "Draft"}</Badge> },
           {

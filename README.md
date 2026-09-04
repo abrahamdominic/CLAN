@@ -1,4 +1,4 @@
-# Christian Life Altar Network (CLAN) — Website
+# Christian Life Altar Network (CLAN) Website
 
 A modern, responsive, Christ-centered website for **Christian Life Altar Network (CLAN)**, a non-denominational Christian organization focused on the **rebirth of true Christianity** through discipleship, prayer, the Word, evangelism, fellowship, spiritual growth, and helping people discover their purpose in Christ.
 
@@ -16,18 +16,18 @@ Built with **Next.js 15** (App Router), **Tailwind CSS**, and **Supabase**.
 ## Features
 
 ### Public Pages
-- **Home** — hero, pillars, featured sermons/events, CTAs
-- **About** — vision, mission, beliefs, history
-- **What We Do** — pillars overview
-- **Discipleship** — programs list & registration
-- **Prayer** — prayer request submission & prayer resources
-- **Sermons** — searchable/filterable library with pagination
-- **Resources** — articles/devotionals/Bible studies with search, filters & pagination
-- **Events** — upcoming events
-- **Outreach** — outreach projects
-- **Testimonies** — testimony submission + approved testimonies
-- **Give** — donation form (Paystack or dev mode)
-- **Purpose, Join, Contact** — purpose discovery, membership, contact
+- **Home**: hero, pillars, featured sermons/events, CTAs
+- **About**: vision, mission, beliefs, history
+- **What We Do**: pillars overview
+- **Discipleship**: programs list & registration
+- **Prayer**: prayer request submission & prayer resources
+- **Sermons**: searchable/filterable library with pagination
+- **Resources**: articles/devotionals/Bible studies with search, filters & pagination
+- **Events**: upcoming events
+- **Outreach**: outreach projects
+- **Testimonies**: testimony submission + approved testimonies
+- **Give**: donation form (Paystack or dev mode)
+- **Purpose, Join, Contact**: purpose discovery, membership, contact
 
 ### Admin CMS (`/admin`)
 Password-protected dashboard (Supabase auth, guarded by middleware) for managing:
@@ -131,4 +131,4 @@ Deploy on [Vercel](https://vercel.com) (or any Node host). Set the environment v
 
 ## License
 
-Private — for CLAN ministry use.
+Private: for CLAN ministry use.

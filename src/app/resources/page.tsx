@@ -14,7 +14,7 @@ export default async function ResourcesPage() {
       <PageHeader
         eyebrow="Resources"
         title="Articles, Devotionals & Bible Studies"
-        description="Explore our library of Christian resources — Bible studies, devotionals, discipleship, prayer, purpose, evangelism and more."
+        description="Explore our library of Christian resources: Bible studies, devotionals, discipleship, prayer, purpose, evangelism and more."
       />
       <section className="py-16">
         <Container>

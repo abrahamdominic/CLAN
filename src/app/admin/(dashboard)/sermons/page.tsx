@@ -103,9 +103,9 @@ export default function AdminSermonsPage() {
       <AdminTable
         columns={[
           { key: "title", label: "Title", render: (s) => <span className="font-medium text-navy-900">{s.title}</span> },
-          { key: "category", label: "Category", render: (s) => s.category ? <Badge>{s.category}</Badge> : "—" },
+          { key: "category", label: "Category", render: (s) => s.category ? <Badge>{s.category}</Badge> : "-" },
           { key: "date", label: "Date", render: (s) => formatDate(s.date) },
-          { key: "featured", label: "Featured", render: (s) => s.featured ? <Badge variant="warning">Featured</Badge> : "—" },
+          { key: "featured", label: "Featured", render: (s) => s.featured ? <Badge variant="warning">Featured</Badge> : "-" },
           { key: "published", label: "Status", render: (s) => <Badge variant={s.published ? "success" : "default"}>{s.published ? "Published" : "Draft"}</Badge> },
           {
             key: "actions", label: "", className: "w-32",

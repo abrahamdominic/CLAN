@@ -14,7 +14,7 @@ export default async function SermonsPage() {
       <PageHeader
         eyebrow="Sermons & Teachings"
         title="The Word of God"
-        description="Explore our library of sermons and teachings — audio, video and notes to help you know, understand and live according to Scripture."
+        description="Explore our library of sermons and teachings: audio, video and notes to help you know, understand and live according to Scripture."
       />
       <section className="py-16">
         <Container>

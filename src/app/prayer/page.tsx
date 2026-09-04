@@ -29,7 +29,7 @@ export default function PrayerPage() {
                   &ldquo;Therefore confess your sins to each other and pray for each other so that
                   you may be healed. The prayer of a righteous person is powerful and effective.&rdquo;
                 </p>
-                <p className="mt-2 text-sm font-semibold text-gold-400">— James 5:16</p>
+                <p className="mt-2 text-sm font-semibold text-gold-400">James 5:16</p>
               </div>
             </div>
           </Reveal>
