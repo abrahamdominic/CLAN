@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { getServerClient, getSupabaseServer, isSupabaseConfigured } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { slugify } from "@/lib/utils";
 import { validEmail, validMessage, validName, sanitizeText, truncate } from "@/lib/validation";
@@ -248,7 +248,9 @@ export async function adminLogin(formData: FormData) {
   if (!isSupabaseConfigured) {
     return { error: "Supabase is not configured. Set your environment variables first." };
   }
-  const sb = getServerClient();
+  // Use the cookie-based SSR client so the auth session is persisted to cookies
+  // that the middleware can read to grant dashboard access.
+  const sb = await getSupabaseServer();
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
   return { success: true };
@@ -256,7 +258,8 @@ export async function adminLogin(formData: FormData) {
 
 export async function adminLogout() {
   if (isSupabaseConfigured) {
-    await getServerClient().auth.signOut();
+    const sb = await getSupabaseServer();
+    await sb.auth.signOut();
   }
   revalidatePath("/admin");
 }

@@ -29,11 +29,12 @@ export function getServerClient() {
 /* ---- Cookie-based client for authenticated requests (middleware, RLS) ---- */
 
 export async function getSupabaseServer() {
-  if (!url || !serviceKey) {
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
     throw new Error("Supabase is not configured.");
   }
   const cookieStore = await cookies();
-  return createSSRClient(url, serviceKey, {
+  return createSSRClient(url, anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll();
