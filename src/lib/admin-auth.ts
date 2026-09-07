@@ -31,14 +31,16 @@ export async function requireAdmin(): Promise<boolean> {
 export async function isStaffUser(userId: string): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   try {
+    // Filter staff roles server-side so a user with multiple profile rows
+    // (e.g. an auto-created "member" profile plus a later-granted admin row)
+    // is still recognized as staff. Matching any staff row is sufficient.
     const { data } = await getServerClient()
       .from("profiles")
       .select("role")
       .eq("user_id", userId)
+      .in("role", [...STAFF_ROLES])
       .limit(1);
-    // Prefer the most-privileged profile row in case duplicate profiles exist.
-    const roles = (data ?? []).map((p) => p.role);
-    return roles.some((r) => STAFF_ROLES.has(r));
+    return (data?.length ?? 0) > 0;
   } catch {
     return false;
   }
