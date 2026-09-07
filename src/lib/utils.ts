@@ -7,15 +7,24 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string | Date | null | undefined) {
-  if (!date) return "";
-  const d = typeof date === "string" ? parseISO(date) : date;
-  return format(d, "MMM d, yyyy");
+  const text = safeFormat(date, "MMM d, yyyy");
+  return text === null ? "" : text;
 }
 
 export function formatDateTime(date: string | Date | null | undefined) {
-  if (!date) return "";
-  const d = typeof date === "string" ? parseISO(date) : date;
-  return format(d, "MMM d, yyyy h:mm a");
+  const text = safeFormat(date, "MMM d, yyyy h:mm a");
+  return text === null ? "" : text;
+}
+
+function safeFormat(date: string | Date | null | undefined, pattern: string): string | null {
+  if (!date) return null;
+  try {
+    const d = typeof date === "string" ? parseISO(date) : date;
+    if (isNaN(d.getTime())) return null;
+    return format(d, pattern);
+  } catch {
+    return null;
+  }
 }
 
 export function slugify(str: string) {

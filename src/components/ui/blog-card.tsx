@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { FileText, Calendar } from "lucide-react";
 import type { BlogPost } from "@/types";
 import { formatDate, toPlainText } from "@/lib/utils";
@@ -16,12 +15,8 @@ export function BlogCard({ post }: BlogCardProps) {
     >
       <div className="relative aspect-video w-full overflow-hidden bg-navy-100">
         {post.featured_image ? (
-          <Image
-            src={post.featured_image}
-            alt={post.title}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={post.featured_image} alt={post.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="flex h-full items-center justify-center bg-navy-800">
             <FileText className="h-10 w-10 text-gold-400" />

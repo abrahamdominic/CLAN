@@ -69,31 +69,45 @@ const TABLE_PUBLIC_PATHS: Record<string, string[]> = {
 /* ==================== Generic Admin CRUD ==================== */
 
 function revalidateAdminAndPublic(table: string, path?: string) {
-  revalidatePath("/admin");
-  if (path) revalidatePath(path);
-  for (const p of TABLE_PUBLIC_PATHS[table] ?? []) revalidatePath(p);
-  for (const tag of TABLE_CACHE_TAGS[table] ?? []) revalidateTag(tag);
-  revalidateTag("admin-stats");
+  // Revalidation failures must never fail a write: a thrown error here would
+  // surface in the client as Next.js's generic "Server Components render"
+  // error, even though the mutation itself succeeded.
+  const safe = (fn: () => void) => { try { fn(); } catch { /* ignore */ } };
+  safe(() => revalidatePath("/admin"));
+  if (path) safe(() => revalidatePath(path));
+  for (const p of TABLE_PUBLIC_PATHS[table] ?? []) safe(() => revalidatePath(p));
+  for (const tag of TABLE_CACHE_TAGS[table] ?? []) safe(() => revalidateTag(tag));
+  safe(() => revalidateTag("admin-stats"));
 }
 
-export async function adminCreate(table: string, data: Record<string, unknown>) {
-  if (!isSupabaseConfigured) return { error: "Database not configured" };
+export type AdminActionResult = {
+  success: boolean;
+  error?: string;
+  id?: string | null;
+};
+
+export async function adminCreate(table: string, data: Record<string, unknown>): Promise<AdminActionResult> {
+  if (!isSupabaseConfigured) return { success: false, error: "Database not configured" };
   const notAllowed = assertAllowedTable(table);
-  if (notAllowed) return { error: notAllowed };
+  if (notAllowed) return { success: false, error: notAllowed };
   if (data.title && !data.slug) data.slug = slugify(String(data.title));
-  const { error } = await getServerClient().from(table).insert(data);
-  if (error) return { error: error.message };
+  const { data: row, error } = await getServerClient()
+    .from(table)
+    .insert(data)
+    .select("id")
+    .single();
+  if (error) return { success: false, error: error.message };
   revalidateAdminAndPublic(table);
-  return { success: true };
+  return { success: true, id: (row as { id?: string } | null)?.id ?? null };
 }
 
-export async function adminUpdate(table: string, id: string, data: Record<string, unknown>) {
-  if (!isSupabaseConfigured) return { error: "Database not configured" };
+export async function adminUpdate(table: string, id: string, data: Record<string, unknown>): Promise<AdminActionResult> {
+  if (!isSupabaseConfigured) return { success: false, error: "Database not configured" };
   const notAllowed = assertAllowedTable(table);
-  if (notAllowed) return { error: notAllowed };
+  if (notAllowed) return { success: false, error: notAllowed };
   if (data.title && !data.slug) data.slug = slugify(String(data.title));
   const { error } = await getServerClient().from(table).update(data).eq("id", id);
-  if (error) return { error: error.message };
+  if (error) return { success: false, error: error.message };
   revalidateAdminAndPublic(table);
   return { success: true };
 }

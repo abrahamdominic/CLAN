@@ -40,15 +40,23 @@ export default function AdminBlogPage() {
 
   async function handleDelete(post: BlogPost) {
     if (!confirm(`Delete "${post.title}" permanently? This cannot be undone.`)) return;
-    const result = await adminDelete("blog_posts", post.id);
-    if (result.error) toast.error(result.error);
-    else { toast.success("Deleted"); load(); }
+    try {
+      const result = await adminDelete("blog_posts", post.id);
+      if (result.error) toast.error(result.error);
+      else { toast.success("Deleted"); load(); }
+    } catch {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
   }
 
   async function handleToggle(post: BlogPost) {
-    const result = await adminToggleField("blog_posts", post.id, "published", !post.published);
-    if (result.error) toast.error(result.error);
-    else { toast.success(post.published ? "Unpublished" : "Published"); load(); }
+    try {
+      const result = await adminToggleField("blog_posts", post.id, "published", !post.published);
+      if (result.error) toast.error(result.error);
+      else { toast.success(post.published ? "Unpublished" : "Published"); load(); }
+    } catch {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
   }
 
   return (

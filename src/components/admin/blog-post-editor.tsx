@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Save, Eye, UploadCloud, X, ImagePlus, Clipboard, Check, User, Calendar,
@@ -9,15 +9,37 @@ import { Badge } from "@/components/admin/admin-form-fields";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { uploadBlogImage, adminCreate, adminUpdate, adminDelete } from "@/components/admin/admin-actions";
 import { sanitizeHtmlContent } from "@/lib/sanitize";
-import { slugify, formatDate } from "@/lib/utils";
+import { slugify, formatDate, formatDateTime } from "@/lib/utils";
 import toast from "react-hot-toast";
 import type { BlogPost } from "@/types";
 
 const BLOG_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const BLOG_IMAGE_MAX = 5 * 1024 * 1024;
 
+const AUTOSAVE_DEBOUNCE_MS = 1200;
+const DRAFT_PREFIX = "clan-blog-draft";
+
 interface BlogPostEditorProps {
   post: BlogPost | null;
+}
+
+function draftKey(id: string | null | undefined): string {
+  return `${DRAFT_PREFIX}:${id ?? "new"}`;
+}
+
+interface AutosavePayload {
+  title: string;
+  slug: string;
+  author: string | null;
+  category: string | null;
+  tags: string[];
+  content: string;
+  featured_image: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  featured: boolean;
+  published: boolean;
+  published_date: string;
 }
 
 export function BlogPostEditor({ post }: BlogPostEditorProps) {
@@ -46,6 +68,45 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
   const [saving, setSaving] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [autoSavedAt, setAutoSavedAt] = useState<Date | null>(null);
+
+  /* ── Autosave refs ── */
+  const postIdRef = useRef<string | null>(post?.id ?? null);
+  const latestDataRef = useRef<AutosavePayload | null>(null);
+  const lastSavedRef = useRef<string>("");
+  const initialSnapshotRef = useRef<string | null>(null);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosavingRef = useRef(false);
+  const pendingAutosaveRef = useRef(false);
+  const manualSavingRef = useRef(false);
+  const draftRecoveredRef = useRef(false);
+  // Reflects the publication status of the row currently persisted in the DB.
+  // Autosaves preserve it; only explicit Save Draft / Publish change it. This
+  // guarantees a new article can never be auto-published halfway through writing.
+  const publishedOnceRef = useRef<boolean>(post?.published ?? false);
+
+  /* ── Build the payload that is sent to the DB / stored as a draft ── */
+  const buildPayload = useCallback(
+    (image?: string | null, publish?: boolean): AutosavePayload => {
+      const img = image === undefined ? featuredImage : image;
+      return {
+        title: title.trim(),
+        slug: slug.trim() || slugify(title),
+        author: author.trim() || null,
+        category: category.trim() || null,
+        tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        content: sanitizeHtmlContent(content),
+        featured_image: img && img.startsWith("blob:") ? null : img,
+        seo_title: seoTitle.trim() || null,
+        seo_description: seoDesc.trim() || null,
+        featured,
+        published: publish ?? published,
+        published_date: publishedDate ? new Date(publishedDate).toISOString() : new Date().toISOString(),
+      };
+    },
+    [title, slug, author, category, tags, content, featuredImage, seoTitle, seoDesc, featured, published, publishedDate],
+  );
 
   /* ── Dirty tracking / beforeunload ── */
   useEffect(() => {
@@ -60,6 +121,149 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
   useEffect(() => {
     if (!slugTouched && !isEdit) setSlug(slugify(title));
   }, [title, slugTouched, isEdit]);
+
+  /* ── Clear the stored draft once a save is confirmed ── */
+  const clearLocalDraft = useCallback(() => {
+    try {
+      localStorage.removeItem(draftKey(postIdRef.current ?? post?.id ?? null));
+    } catch { /* ignore */ }
+  }, [post?.id]);
+
+  /* ── Move a stored draft to a new key (new post -> created id) ── */
+  const moveLocalDraft = useCallback((newId: string) => {
+    const from = draftKey(post?.id ?? null);
+    const to = draftKey(newId);
+    try {
+      const raw = localStorage.getItem(from);
+      if (raw) { localStorage.setItem(to, raw); localStorage.removeItem(from); }
+    } catch { /* ignore */ }
+  }, [post?.id]);
+
+  /* ── Debounced autosave ── */
+  const runAutosaveNow = useCallback(async () => {
+    if (manualSavingRef.current) return;
+    if (autosavingRef.current) { pendingAutosaveRef.current = true; return; }
+
+    const data = latestDataRef.current;
+    if (!data || JSON.stringify(data) === lastSavedRef.current) return;
+
+    autosavingRef.current = true;
+    setAutoSaving(true);
+    try {
+      const id = postIdRef.current;
+      const payload: Record<string, unknown> = { ...data };
+      if (!payload.slug) {
+        if (id) delete payload.slug;
+        else payload.slug = `untitled-${Date.now()}`;
+      }
+      // Autosave never changes publication status — it keeps whatever the row
+      // currently has so half-written articles are never published.
+      payload.published = publishedOnceRef.current;
+
+      const result = id
+        ? await adminUpdate("blog_posts", id, payload)
+        : await adminCreate("blog_posts", payload);
+
+      if (result.error) {
+        console.error("[autosave]", result.error);
+        return;
+      }
+      if (!id && result.success && result.id) {
+        moveLocalDraft(result.id);
+        postIdRef.current = result.id;
+        window.history.replaceState(null, "", `/admin/blog/${result.id}/edit`);
+      }
+      lastSavedRef.current = JSON.stringify(data);
+      setDirty(false);
+      setAutoSavedAt(new Date());
+    } catch (err) {
+      console.error("[autosave]", err);
+    } finally {
+      autosavingRef.current = false;
+      setAutoSaving(false);
+      if (pendingAutosaveRef.current && !manualSavingRef.current) {
+        pendingAutosaveRef.current = false;
+        scheduleAutosaveRef.current();
+      }
+    }
+  }, [moveLocalDraft]);
+
+  const runAutosaveNowRef = useRef(runAutosaveNow);
+  useEffect(() => { runAutosaveNowRef.current = runAutosaveNow; }, [runAutosaveNow]);
+
+  const scheduleAutosave = useCallback(() => {
+    if (manualSavingRef.current) return;
+    if (autosavingRef.current) { pendingAutosaveRef.current = true; return; }
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    const timer = setTimeout(() => { void runAutosaveNowRef.current(); }, AUTOSAVE_DEBOUNCE_MS);
+    autosaveTimerRef.current = timer;
+  }, []);
+
+  const scheduleAutosaveRef = useRef(scheduleAutosave);
+  useEffect(() => { scheduleAutosaveRef.current = scheduleAutosave; }, [scheduleAutosave]);
+
+  useEffect(() => {
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = null;
+    return () => {
+      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    };
+  }, []);
+
+  /* ── Mirror every keystroke to localStorage + schedule autosave ── */
+  const postId = post?.id ?? null;
+  useEffect(() => {
+    const payload = buildPayload();
+    latestDataRef.current = payload;
+    const snapshot = JSON.stringify(payload);
+    if (initialSnapshotRef.current === null) initialSnapshotRef.current = snapshot;
+    // Nothing changed yet (initial render) — don't write a draft or autosave.
+    if (snapshot === initialSnapshotRef.current) return;
+    try {
+      localStorage.setItem(draftKey(postIdRef.current ?? postId), JSON.stringify({ savedAt: Date.now(), data: payload }));
+    } catch { /* ignore */ }
+    scheduleAutosave();
+    // scheduleAutosave is stable; buildPayload carries the field deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buildPayload, postId]);
+
+  /* ── Recover an unsaved draft after a device shutdown / browser crash ── */
+  useEffect(() => {
+    if (draftRecoveredRef.current) return;
+    draftRecoveredRef.current = true;
+    try {
+      const raw = localStorage.getItem(draftKey(postId));
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { data?: AutosavePayload } | null;
+      const payload = parsed?.data;
+      if (!payload) return;
+      const hasContent = Boolean(
+        String(payload.title ?? "").trim() ||
+        String(payload.content ?? "").trim() ||
+        String(payload.featured_image ?? "").trim(),
+      );
+      if (!hasContent) return;
+      if (JSON.stringify(payload) === initialSnapshotRef.current) return;
+
+      setTitle(String(payload.title ?? ""));
+      if (payload.slug) { setSlug(String(payload.slug)); setSlugTouched(true); }
+      setAuthor(String(payload.author ?? ""));
+      setCategory(String(payload.category ?? ""));
+      setTags(Array.isArray(payload.tags) ? payload.tags.join(", ") : String(payload.tags ?? ""));
+      setContent(String(payload.content ?? ""));
+      setSeoTitle(String(payload.seo_title ?? ""));
+      setSeoDesc(String(payload.seo_description ?? ""));
+      setFeatured(Boolean(payload.featured));
+      setPublished(Boolean(payload.published));
+      const pd = typeof payload.published_date === "string" ? payload.published_date : "";
+      if (pd) setPublishedDate(pd.slice(0, 16));
+      if (typeof payload.featured_image === "string" && !payload.featured_image.startsWith("blob:")) {
+        setFeaturedImage(payload.featured_image);
+      }
+      setDirty(true);
+      toast.success("Recovered unsaved changes from autosave", { id: "draft-restore" });
+    } catch { /* ignore */ }
+  }, [postId]);
 
   /* ── Featured image handlers ── */
   function onFeaturedFile(file: File | null) {
@@ -85,47 +289,59 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
   /* ── Save ── */
   async function handleSave(publish: boolean) {
     if (!title.trim()) { toast.error("Please add a title"); return; }
-    setSaving("save");
+    setSaving(publish ? "publish" : "save");
+    manualSavingRef.current = true;
+    if (autosaveTimerRef.current) { clearTimeout(autosaveTimerRef.current); autosaveTimerRef.current = null; }
 
     let finalImage = featuredImage;
     try { finalImage = await uploadFeatured(); }
-    catch (err) { toast.error((err as Error).message); setSaving(null); return; }
+    catch (err) { toast.error((err as Error).message); setSaving(null); manualSavingRef.current = false; return; }
 
-    const data: Record<string, unknown> = {
-      title: title.trim(),
-      slug: slug.trim() || slugify(title),
-      author: author.trim() || null,
-      category: category.trim() || null,
-      tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-      content: sanitizeHtmlContent(content),
-      featured_image: finalImage,
-      seo_title: seoTitle.trim() || null,
-      seo_description: seoDesc.trim() || null,
-      featured,
-      published: publish,
-      published_date: publishedDate ? new Date(publishedDate).toISOString() : new Date().toISOString(),
-    };
+    const id = postIdRef.current;
+    const autosaveData = buildPayload(finalImage, publish);
+    const data: Record<string, unknown> = { ...autosaveData };
 
-    const result = isEdit
-      ? await adminUpdate("blog_posts", post!.id, data)
-      : await adminCreate("blog_posts", data);
-    setSaving(null);
-
-    if (result.error) { toast.error(result.error); return; }
-    setPublished(publish);
-    setDirty(false);
-    toast.success(publish ? (isEdit ? "Post updated and published" : "Post published") : "Draft saved");
-    router.refresh();
+    try {
+      const result = id
+        ? await adminUpdate("blog_posts", id, data)
+        : await adminCreate("blog_posts", data);
+      if (result.error) { toast.error(result.error); return; }
+      if (!id && result.success && result.id) {
+        moveLocalDraft(result.id);
+        postIdRef.current = result.id;
+        window.history.replaceState(null, "", `/admin/blog/${result.id}/edit`);
+      }
+      setPublished(publish);
+      publishedOnceRef.current = publish;
+      setDirty(false);
+      setAutoSavedAt(new Date());
+      lastSavedRef.current = JSON.stringify(data);
+      clearLocalDraft();
+      toast.success(publish ? (isEdit ? "Post updated and published" : "Post published") : "Draft saved");
+      router.refresh();
+    } catch (err) {
+      console.error("[blog-save]", err);
+      toast.error("An unexpected error occurred while saving. Please try again.");
+    } finally {
+      setSaving(null);
+      manualSavingRef.current = false;
+    }
   }
 
   /* ── Delete ── */
   async function handleDelete() {
     if (!post) return;
     if (!confirm("Delete this post permanently? This cannot be undone.")) return;
-    const result = await adminDelete("blog_posts", post.id);
-    if (result.error) { toast.error(result.error); return; }
-    toast.success("Post deleted");
-    router.push("/admin/blog");
+    try {
+      const result = await adminDelete("blog_posts", post.id);
+      if (result.error) { toast.error(result.error); return; }
+      clearLocalDraft();
+      toast.success("Post deleted");
+      router.push("/admin/blog");
+    } catch (err) {
+      console.error("[blog-delete]", err);
+      toast.error("An unexpected error occurred while deleting. Please try again.");
+    }
   }
 
   /* ── Preview ── */
@@ -192,6 +408,11 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
             </h1>
             <p className="text-sm text-navy-500">
               {dirty ? <span className="text-amber-600 font-medium">● Unsaved changes</span> : <span>All changes saved</span>}
+              {autoSaving ? (
+                <span className="ml-2 text-navy-400">Autosaving…</span>
+              ) : autoSavedAt ? (
+                <span className="ml-2 text-navy-400">Autosaved {formatDateTime(autoSavedAt)}</span>
+              ) : null}
             </p>
           </div>
         </div>
@@ -211,7 +432,7 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
             disabled={saving !== null}
             className="flex items-center gap-2 rounded-lg bg-navy-900 px-4 py-2 text-sm font-semibold text-white hover:bg-navy-800 disabled:opacity-60"
           >
-            {isEdit ? "Update" : "Publish"}
+            {saving === "publish" ? "Saving..." : (isEdit ? "Update" : "Publish")}
           </button>
           {isEdit && (
             <button onClick={handleDelete} className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
