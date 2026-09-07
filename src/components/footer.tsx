@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from "luci
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/logo";
 import { CONTACT, SITE_DESCRIPTION } from "@/lib/content";
-import { submitNewsletter } from "./footer-actions";
+import { NewsletterForm } from "./newsletter-form";
 
 const ministries = [
   { href: "/discipleship", label: "Discipleship" },
@@ -29,31 +29,6 @@ const socials = [
   { href: "#", label: "Instagram", icon: Instagram },
   { href: "#", label: "YouTube", icon: Youtube },
 ];
-
-export function NewsletterForm() {
-  async function newsletterAction(formData: FormData) {
-    "use server";
-    await submitNewsletter(formData);
-  }
-  return (
-    <form action={newsletterAction} className="mt-4 flex max-w-sm gap-2">
-      <input
-        type="email"
-        name="email"
-        required
-        placeholder="Your email"
-        aria-label="Email address"
-        className="w-full rounded-lg border border-navy-600 bg-navy-900 px-4 py-2.5 text-sm text-white placeholder:text-navy-400 focus:border-gold-400 focus:outline-none"
-      />
-      <button
-        type="submit"
-        className="shrink-0 rounded-lg bg-gold-500 px-4 py-2.5 text-sm font-semibold text-navy-950 transition-colors hover:bg-gold-600"
-      >
-        Subscribe
-      </button>
-    </form>
-  );
-}
 
 export function Footer() {
   return (

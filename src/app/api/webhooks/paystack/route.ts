@@ -25,13 +25,19 @@ export async function POST(request: Request) {
     .update(rawBody)
     .digest("hex");
 
-  if (signature !== expected) {
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const signatureBuffer = Buffer.from(signature, "utf8");
+  const isSignatureValid =
+    expectedBuffer.length === signatureBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, signatureBuffer);
+
+  if (!isSignatureValid) {
     return new NextResponse("Invalid signature", { status: 401 });
   }
 
   let event: {
     event?: string;
-    data?: { reference?: string; amount?: number; customer?: { email?: string } };
+    data?: { reference?: string; amount?: number; currency?: string; customer?: { email?: string } };
   };
   try {
     event = JSON.parse(rawBody);
@@ -42,6 +48,7 @@ export async function POST(request: Request) {
   if (event.event === "charge.success" && event.data?.reference && isSupabaseConfigured) {
     const reference = event.data.reference;
     const amountKobo = event.data.amount ?? 0;
+    const currency = event.data.currency || "USD";
 
     // Check if already recorded
     const { data: existing } = await getServerClient()
@@ -51,12 +58,22 @@ export async function POST(request: Request) {
       .single();
 
     if (!existing) {
-      await getServerClient().from("donations").insert({
+      const { error: insertError } = await getServerClient().from("donations").insert({
         amount: amountKobo / 100,
+        currency,
         donor_email: event.data.customer?.email || null,
         status: "completed",
         reference,
       });
+      if (insertError) {
+        // Return 5xx so Paystack retries the webhook. Returning 2xx would mark
+        // the delivery as successful and permanently lose the donation record.
+        console.error("[paystack-webhook] failed to record donation", insertError.message);
+        return NextResponse.json(
+          { received: true, error: "Failed to record donation" },
+          { status: 500 }
+        );
+      }
     }
   }
 

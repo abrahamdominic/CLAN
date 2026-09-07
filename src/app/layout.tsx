@@ -1,22 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/lib/content";
+import { SiteShell } from "@/components/site-shell";
 
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+const display = localFont({
+  src: "./fonts/cormorant-garamond-var.woff2",
   variable: "--font-display",
   display: "swap",
+  weight: "500 700",
 });
 
-const body = Inter({
-  subsets: ["latin"],
+const body = localFont({
+  src: "./fonts/inter-var.woff2",
   variable: "--font-body",
   display: "swap",
+  weight: "100 900",
 });
 
 export const metadata: Metadata = {
@@ -53,9 +53,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body className="flex min-h-screen flex-col font-body">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SiteShell>
+          {children}
+        </SiteShell>
         <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
       </body>
     </html>

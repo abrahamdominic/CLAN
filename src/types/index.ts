@@ -159,6 +159,7 @@ export interface ContactMessage {
 export interface Donation {
   id: string;
   amount: number;
+  currency?: string;
   category: string | null;
   donor_name: string | null;
   donor_email: string | null;
@@ -190,6 +191,12 @@ export interface Faq {
 export interface NewsletterSubscriber {
   id: string;
   email: string;
+  name: string | null;
+  phone_number: string | null;
   active: boolean;
+  confirmation_token: string | null;
+  confirmation_token_expires_at: string | null;
+  confirmed_at: string | null;
   created_at?: string;
+  updated_at?: string;
 }

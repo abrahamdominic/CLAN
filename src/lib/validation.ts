@@ -13,6 +13,10 @@ export function validMessage(msg: string): boolean {
 export function sanitizeText(input: string): string {
   return String(input || "")
     .replace(/<[^>]*>/g, "")
+    .replace(/javascript:/gi, "")
+    .replace(/vbscript:/gi, "")
+    .replace(/on\w+\s*=/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .trim();
 }
 

@@ -7,6 +7,7 @@ import { Calendar, User } from "lucide-react";
 import { getBlogPostBySlug, getBlogPosts } from "@/lib/db";
 import { SAMPLE_BLOG } from "@/lib/content";
 import { formatDate, toPlainText } from "@/lib/utils";
+import { sanitizeHtmlContent } from "@/lib/sanitize";
 
 export async function generateStaticParams() {
   return SAMPLE_BLOG.map((p) => ({ slug: p.slug }));
@@ -34,6 +35,8 @@ export default async function ResourceDetailPage({
   const { slug } = await params;
   const post = (await getBlogPostBySlug(slug)) || SAMPLE_BLOG.find((p) => p.slug === slug);
   if (!post) notFound();
+
+  const sanitizedContent = sanitizeHtmlContent(post.content || "");
 
   const others = (await getBlogPosts()).filter((p) => p.slug !== post.slug);
   const related = others.length ? others.slice(0, 3) : SAMPLE_BLOG.filter((p) => p.slug !== post.slug).slice(0, 3);
@@ -64,8 +67,8 @@ export default async function ResourceDetailPage({
       <section className="py-16">
         <Container className="max-w-3xl">
           <article className="prose-content">
-            {post.content ? (
-              <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            {sanitizedContent ? (
+              <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
             ) : (
               <p>Content coming soon.</p>
             )}
