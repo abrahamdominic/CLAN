@@ -180,7 +180,7 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
           ? await adminUpdate("blog_posts", id, payload)
           : await adminCreate("blog_posts", payload);
 
-        if (result.error) {
+        if (result?.error) {
           console.error("[autosave]", result.error);
           return;
         }
@@ -335,6 +335,7 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
       const result = id
         ? await adminUpdate("blog_posts", id, data)
         : await adminCreate("blog_posts", data);
+      if (!result) { toast.error("Save did not respond. Please try again."); return; }
       if (result.error) { toast.error(result.error); return; }
       if (!id && result.success && result.id) {
         moveLocalDraft(result.id);

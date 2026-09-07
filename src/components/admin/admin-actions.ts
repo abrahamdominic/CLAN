@@ -96,7 +96,34 @@ export async function adminCreate(table: string, data: Record<string, unknown>):
     .insert(data)
     .select("id")
     .single();
-  if (error) return { success: false, error: error.message };
+  if (error) {
+    // A duplicate slug means the autosave already created the row while this
+    // create was in flight (publish clicked before the autosave response
+    // landed). Turn the create into an update of that row instead of failing —
+    // this keeps articles publishable no matter how the save/publish paths
+    // interleave, and avoids surfacing the constraint error as a render error.
+    if (
+      table === "blog_posts" &&
+      data.slug &&
+      /blog_posts_slug_key/.test(error.message)
+    ) {
+      const { data: existing } = await getServerClient()
+        .from(table)
+        .select("id")
+        .eq("slug", data.slug)
+        .single();
+      if (existing?.id) {
+        const { error: upErr } = await getServerClient()
+          .from(table)
+          .update(data)
+          .eq("id", existing.id);
+        if (upErr) return { success: false, error: upErr.message };
+        revalidateAdminAndPublic(table);
+        return { success: true, id: existing.id };
+      }
+    }
+    return { success: false, error: error.message };
+  }
   revalidateAdminAndPublic(table);
   return { success: true, id: (row as { id?: string } | null)?.id ?? null };
 }
