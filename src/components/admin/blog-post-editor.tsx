@@ -27,6 +27,15 @@ function draftKey(id: string | null | undefined): string {
   return `${DRAFT_PREFIX}:${id ?? "new"}`;
 }
 
+// Convert a (possibly empty or invalid) datetime-local value to an ISO string
+// without ever throwing — a RangeError here used to escape from the keystroke
+// mirror effect and crash the admin editor with the generic production error.
+function safePublishDateISO(value: string): string {
+  if (!value) return new Date().toISOString();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
 interface AutosavePayload {
   title: string;
   slug: string;
@@ -79,6 +88,12 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosavingRef = useRef(false);
   const pendingAutosaveRef = useRef(false);
+  // Resolves when the currently in-flight autosave write finishes. handleSave
+  // awaits this so a Publish click that lands while the first autosave is still
+  // creating the row updates that row instead of attempting a second create
+  // (which would fail on the unique slug constraint and silently leave the
+  // post unpublished).
+  const inFlightAutosaveRef = useRef<Promise<void> | null>(null);
   const manualSavingRef = useRef(false);
   const draftRecoveredRef = useRef(false);
   // Reflects the publication status of the row currently persisted in the DB.
@@ -102,7 +117,7 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
         seo_description: seoDesc.trim() || null,
         featured,
         published: publish ?? published,
-        published_date: publishedDate ? new Date(publishedDate).toISOString() : new Date().toISOString(),
+        published_date: safePublishDateISO(publishedDate),
       };
     },
     [title, slug, author, category, tags, content, featuredImage, seoTitle, seoDesc, featured, published, publishedDate],
@@ -144,48 +159,55 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
     if (manualSavingRef.current) return;
     if (autosavingRef.current) { pendingAutosaveRef.current = true; return; }
 
-    const data = latestDataRef.current;
-    if (!data || JSON.stringify(data) === lastSavedRef.current) return;
+    const run = async () => {
+      const data = latestDataRef.current;
+      if (!data || JSON.stringify(data) === lastSavedRef.current) return;
 
-    autosavingRef.current = true;
-    setAutoSaving(true);
-    try {
-      const id = postIdRef.current;
-      const payload: Record<string, unknown> = { ...data };
-      if (!payload.slug) {
-        if (id) delete payload.slug;
-        else payload.slug = `untitled-${Date.now()}`;
-      }
-      // Autosave never changes publication status — it keeps whatever the row
-      // currently has so half-written articles are never published.
-      payload.published = publishedOnceRef.current;
+      autosavingRef.current = true;
+      setAutoSaving(true);
+      try {
+        const id = postIdRef.current;
+        const payload: Record<string, unknown> = { ...data };
+        if (!payload.slug) {
+          if (id) delete payload.slug;
+          else payload.slug = `untitled-${Date.now()}`;
+        }
+        // Autosave never changes publication status — it keeps whatever the row
+        // currently has so half-written articles are never published.
+        payload.published = publishedOnceRef.current;
 
-      const result = id
-        ? await adminUpdate("blog_posts", id, payload)
-        : await adminCreate("blog_posts", payload);
+        const result = id
+          ? await adminUpdate("blog_posts", id, payload)
+          : await adminCreate("blog_posts", payload);
 
-      if (result.error) {
-        console.error("[autosave]", result.error);
-        return;
+        if (result.error) {
+          console.error("[autosave]", result.error);
+          return;
+        }
+        if (!id && result.success && result.id) {
+          moveLocalDraft(result.id);
+          postIdRef.current = result.id;
+          window.history.replaceState(null, "", `/admin/blog/${result.id}/edit`);
+        }
+        lastSavedRef.current = JSON.stringify(data);
+        setDirty(false);
+        setAutoSavedAt(new Date());
+      } catch (err) {
+        console.error("[autosave]", err);
+      } finally {
+        autosavingRef.current = false;
+        setAutoSaving(false);
+        if (pendingAutosaveRef.current && !manualSavingRef.current) {
+          pendingAutosaveRef.current = false;
+          scheduleAutosaveRef.current();
+        }
       }
-      if (!id && result.success && result.id) {
-        moveLocalDraft(result.id);
-        postIdRef.current = result.id;
-        window.history.replaceState(null, "", `/admin/blog/${result.id}/edit`);
-      }
-      lastSavedRef.current = JSON.stringify(data);
-      setDirty(false);
-      setAutoSavedAt(new Date());
-    } catch (err) {
-      console.error("[autosave]", err);
-    } finally {
-      autosavingRef.current = false;
-      setAutoSaving(false);
-      if (pendingAutosaveRef.current && !manualSavingRef.current) {
-        pendingAutosaveRef.current = false;
-        scheduleAutosaveRef.current();
-      }
-    }
+    };
+
+    inFlightAutosaveRef.current = run().finally(() => {
+      inFlightAutosaveRef.current = null;
+    });
+    await inFlightAutosaveRef.current;
   }, [moveLocalDraft]);
 
   const runAutosaveNowRef = useRef(runAutosaveNow);
@@ -297,6 +319,14 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
     try { finalImage = await uploadFeatured(); }
     catch (err) { toast.error((err as Error).message); setSaving(null); manualSavingRef.current = false; return; }
 
+    // If the first autosave is still creating the row (its response has not
+    // landed yet), wait for it so postIdRef is set and Publish becomes an
+    // update of that row instead of a second create that would collide on the
+    // unique slug and leave the article unpublished.
+    try {
+      if (inFlightAutosaveRef.current) await inFlightAutosaveRef.current;
+    } catch { /* autosave already surfaced its error */ }
+
     const id = postIdRef.current;
     const autosaveData = buildPayload(finalImage, publish);
     const data: Record<string, unknown> = { ...autosaveData };
@@ -347,7 +377,7 @@ export function BlogPostEditor({ post }: BlogPostEditorProps) {
   /* ── Preview ── */
   if (previewOpen) {
     const previewPost = {
-      title, category, author, published_date: publishedDate ? new Date(publishedDate).toISOString() : null,
+      title, category, author, published_date: safePublishDateISO(publishedDate),
       content: sanitizeHtmlContent(content),
     };
     return (
