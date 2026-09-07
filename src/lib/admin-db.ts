@@ -69,13 +69,25 @@ export async function adminUpsertEvent(event: Partial<Event>) {
 
 /* ========================== Blog Posts ========================== */
 
-export async function adminGetBlogPosts(page = 1, perPage = 20, search?: string) {
+export async function adminGetBlogPosts(page = 1, perPage = 20, search?: string, category?: string, status?: string) {
   let q = getServerClient().from("blog_posts").select("*", { count: "exact" });
   if (search) q = q.ilike("title", `%${search}%`);
+  if (category) q = q.eq("category", category);
+  if (status === "published") q = q.eq("published", true);
+  if (status === "draft") q = q.eq("published", false);
   q = q.order("created_at", { ascending: false }).range((page - 1) * perPage, page * perPage - 1);
   const { data, count, error } = await q;
   if (error) throw error;
-  return { data: (data as BlogPost[]) ?? [], count: count ?? 0 };
+
+  const { data: all } = await getServerClient()
+    .from("blog_posts")
+    .select("category")
+    .not("category", "is", null);
+  const categories = Array.from(
+    new Set((all ?? []).map((c) => c.category).filter(Boolean) as string[])
+  ).sort();
+
+  return { data: (data as BlogPost[]) ?? [], count: count ?? 0, categories };
 }
 
 export async function adminGetBlogPost(id: string) {

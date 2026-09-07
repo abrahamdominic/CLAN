@@ -66,6 +66,12 @@ export default async function ResourceDetailPage({
 
       <section className="py-16">
         <Container className="max-w-3xl">
+          {post.featured_image && (
+            <div className="mb-8 overflow-hidden rounded-2xl border border-navy-100 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.featured_image} alt={post.title} className="aspect-video w-full object-cover" />
+            </div>
+          )}
           <article className="prose-content">
             {sanitizedContent ? (
               <div dangerouslySetInnerHTML={{ __html: sanitizedContent }} />

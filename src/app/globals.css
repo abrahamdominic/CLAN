@@ -71,7 +71,71 @@ body {
 }
 
 .prose-content img {
-  @apply rounded-lg my-4;
+  @apply my-6 rounded-lg;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose-content figure {
+  @apply my-6;
+}
+
+.prose-content figcaption {
+  @apply mt-2 text-center text-sm text-navy-500;
+}
+
+.prose-content hr {
+  @apply my-8 border-t border-navy-200;
+}
+
+.prose-content pre {
+  @apply my-6 overflow-x-auto rounded-lg bg-navy-900 p-4 text-sm text-white;
+}
+
+.prose-content code {
+  @apply rounded bg-navy-100 px-1.5 py-0.5 font-mono text-sm text-navy-800;
+}
+
+.prose-content pre code {
+  @apply block bg-transparent p-0 text-white;
+}
+
+.prose-content table {
+  @apply my-6 w-full border-collapse overflow-hidden rounded-lg;
+}
+
+.prose-content th,
+.prose-content td {
+  @apply border border-navy-200 px-3 py-2 text-left;
+}
+
+.prose-content th {
+  @apply bg-navy-50 font-semibold text-navy-900;
+}
+
+.prose-content strong,
+.prose-content b {
+  @apply font-semibold text-navy-900;
+}
+
+.prose-content iframe,
+.prose-content video {
+  @apply my-6 max-w-full rounded-lg;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.prose-content details {
+  @apply my-4 rounded-lg border border-navy-100 p-3;
+}
+
+.prose-content summary {
+  @apply cursor-pointer font-medium text-navy-900;
+}
+
+/* Rich text editor prose (needed inside admin) */
+.rich-editor-prose .prose-content {
+  min-height: 300px;
 }
 
 /* Scroll reveal */

@@ -162,6 +162,36 @@ export async function uploadFile(formData: FormData) {
   return { success: true, url: urlData.publicUrl };
 }
 
+/* ==================== Blog image upload ==================== */
+
+const BLOG_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const BLOG_IMAGE_MAX = 5 * 1024 * 1024;
+
+export async function uploadBlogImage(formData: FormData) {
+  if (!isSupabaseConfigured) return { error: "Database not configured" };
+  const file = formData.get("file") as File | null;
+  if (!file) return { error: "No file provided" };
+  if (file.size > BLOG_IMAGE_MAX) return { error: "Image too large (max 5MB)" };
+  if (!BLOG_IMAGE_TYPES.includes(file.type)) return { error: "Only JPG, PNG or WebP images are allowed" };
+
+  const ext = file.name.split(".").pop() || "jpg";
+  const path = `blog/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error: uploadError } = await getServerClient().storage
+    .from("media")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: urlData } = getServerClient().storage.from("media").getPublicUrl(path);
+  await getServerClient().from("media").insert({
+    name: file.name,
+    url: urlData.publicUrl,
+    type: file.type,
+    size: file.size,
+  });
+  revalidatePath("/admin/media");
+  return { success: true, url: urlData.publicUrl };
+}
+
 /* ==================== Settings ==================== */
 
 export async function updateSettings(data: Record<string, unknown>) {
